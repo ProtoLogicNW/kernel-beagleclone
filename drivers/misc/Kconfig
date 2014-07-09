@@ -4,6 +4,12 @@
 
 menu "Misc devices"
 
+config SENSORS_BONELOGIC_TS
+	tristate
+	depends on INPUT
+	select INPUT_POLLDEV
+	default n
+
 config SENSORS_LIS3LV02D
 	tristate
 	depends on INPUT
@@ -540,6 +546,7 @@ source "drivers/misc/c2port/Kconfig"
 source "drivers/misc/eeprom/Kconfig"
 source "drivers/misc/cb710/Kconfig"
 source "drivers/misc/ti-st/Kconfig"
+source "drivers/misc/bonelogic_ts/Kconfig"
 source "drivers/misc/lis3lv02d/Kconfig"
 source "drivers/misc/carma/Kconfig"
 source "drivers/misc/altera-stapl/Kconfig"

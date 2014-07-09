@@ -1,0 +1,13 @@
+#bonelogic
+#bonelogic
+#bonelogic
+
+config SENSORS_BONELOGIC_TS
+	tristate "BoneLogic Touchscreen (I2C)"
+	depends on I2C && INPUT
+	default n
+	help
+	  Blargh /sys/devices/platform/bonelogic_ts
+
+	  This driver also provides an absolute input class device
+

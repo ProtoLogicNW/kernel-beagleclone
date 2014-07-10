@@ -4,7 +4,11 @@
  *
  *     Big fAt reminders: 
  *			1. Use tables in AM335 datasheet, ~pg 30 to determine GPIO modes
- *			2. goofy hex numbers in pinctrl-single blocks are register offsets.  Google bonescript!
+ *			2. goofy hex numbers in pinctrl-single blocks are register offsets.  See: https://github.com/jadonk/bonescript/blob/64732854d4c296de8792d5d4c49639ae5f5ecede/src/bone.js
+ *			3. Duplicate labels errors are triggered when the the node address (@XXXXX) matches an entry in the .dtsi but isn't otherwise identical.  Even the *case* of the hex characters to define the address matters here (!?)
+ *			4. GPIO mapping hell?  RTFM!  (Documentation\devicetree\bindings\gpio\gpio-omap.txt)
+ * 			5. Arghhhhh... Linux GPIOs are different than pin GPIOs (wtf TI?).  GPIO0 on CPU is GPIO1 in linux. THIS ONLY MATTERS FOR "gpios = <....>" [here]
+ *			
  */
 
 /dts-v1/;
@@ -60,7 +64,7 @@
 				0xe0 0x00	/* lcd_vsync.lcd_vsync, OUTPUT | MODE0 */
 				0xe4 0x00	/* lcd_hsync.lcd_hsync, OUTPUT | MODE0 */
 				0xe8 0x00	/* lcd_pclk.lcd_pclk, OUTPUT | MODE0 */
-				0xec 0x00	/* lcd_ac_bias_en.lcd_ac_bias_en, OUTPUT | MODE0 */
+ 				0xec 0x00	/* lcd_ac_bias_en.lcd_ac_bias_en, OUTPUT | MODE0 */
 			>;
 		};
 
@@ -99,11 +103,17 @@
 
 
 
-
 		i2c0_pins: pinmux_i2c0_pins {
 			pinctrl-single,pins = <
 				0x188 (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c0_sda.i2c0_sda */
 				0x18c (PIN_INPUT_PULLUP | MUX_MODE0)	/* i2c0_scl.i2c0_scl */
+			>;
+		};
+
+		i2c2_pins: pinmux_i2c2_pins {
+			pinctrl-single,pins = <
+				0x178 (PIN_INPUT_PULLUP | MUX_MODE3)	/* i2c2_sda */
+				0x17c (PIN_INPUT_PULLUP | MUX_MODE3)	/* i2c2_scl */
 			>;
 		};
 
@@ -283,6 +293,7 @@
 
 	};
 
+	/* "On Chip Peripherals".... in case you were wondering. */
 	ocp {
 		uart0: serial@44e09000 {
 			pinctrl-names = "default";
@@ -330,10 +341,18 @@
 			>;
 
 			tps: tps@2d {
-				reg = <0x2d>;
+				reg = <0x2d>; /* TODO: change to 0x24 for xxx17 PMIC */
 			};
 
 		};
+
+		i2c2: i2c@4819c000 {
+			pinctrl-names = "default";
+			pinctrl-0 = <&i2c2_pins>;
+			status = "okay";
+			clock-frequency = <400000>;
+		};
+
 
 		musb: usb@47400000 {
 			status = "okay";
@@ -401,4 +420,21 @@
 	ti,no-reset;
 };
 
+&i2c2 {
+	/* https://kernel.googlesource.com/pub/scm/linux/kernel/git/tmlind/linux-omap/+/718ae1cd66fb054cb32e2c6851bc71b99f2f6d2c/arch/arm/boot/dts/omap3-gta04.dts*/
+	/* http://www.signal11.us/oss/elce2012/beaglebone_mrf24j40_hacks.diff */
+	tsc2007@48 { 
+		compatible = "ti,tsc2007";
+		reg = <0x48>;
+        interrupt-parent = <&gpio1>;
+        interrupts = <21 2>;
+        gpios = <&gpio1 21 GPIO_ACTIVE_LOW>;
 
+/*
+		interrupt-parent = <&gpio1>;
+		interrupts = <21>;
+*/
+
+		ti,x-plate-ohms = <450>;
+	};
+};

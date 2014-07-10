@@ -151,7 +151,7 @@
 			gpio-controller;
 			#gpio-cells = <2>;
 			interrupt-controller;
-			#interrupt-cells = <1>;
+			#interrupt-cells = <2>;
 			reg = <0x4804c000 0x1000>;
 			interrupts = <98>;
 		};

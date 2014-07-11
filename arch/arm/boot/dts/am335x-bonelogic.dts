@@ -7,7 +7,7 @@
  *			2. goofy hex numbers in pinctrl-single blocks are register offsets.  See: https://github.com/jadonk/bonescript/blob/64732854d4c296de8792d5d4c49639ae5f5ecede/src/bone.js
  *			3. Duplicate labels errors are triggered when the the node address (@XXXXX) matches an entry in the .dtsi but isn't otherwise identical.  Even the *case* of the hex characters to define the address matters here (!?)
  *			4. GPIO mapping hell?  RTFM!  (Documentation\devicetree\bindings\gpio\gpio-omap.txt)
- * 			5. Arghhhhh... Linux GPIOs are different than pin GPIOs (wtf TI?).  GPIO0 on CPU is GPIO1 in linux. THIS ONLY MATTERS FOR "gpios = <....>" [here]
+ * 			5. Arghhhhh... "THEY" said linux GPIOs are different than pin GPIOs.  BUT they're not, at least not in SDK7.  The ti,hwmods deal in the dtsi fixes this.
  *			
  */
 
@@ -350,7 +350,7 @@
 			pinctrl-names = "default";
 			pinctrl-0 = <&i2c2_pins>;
 			status = "okay";
-			clock-frequency = <400000>;
+			clock-frequency = <100000>;
 		};
 
 
@@ -384,7 +384,29 @@
 		};
 
 
+		lcdc: lcdc@0x4830e000 {
+			pinctrl-names = "default", "sleep";
+			pinctrl-0 = <&lcd_pins_default>;
+			pinctrl-1 = <&lcd_pins_sleep>;
+			status = "okay";
+			display-timings {
+				240x400 {
+					hactive         = <240>;
+					vactive         = <400>;
+					hback-porch     = <8>;
+					hfront-porch    = <8>;
+					hsync-len       = <8>;
+					vback-porch     = <8>;
+					vfront-porch    = <8>;
+					vsync-len       = <8>;
+					clock-frequency = <8000000>;
+					hsync-active    = <0>;
+					vsync-active    = <0>;
+				};
+			};
+		};
 
+/*
 		lcdc: lcdc@0x4830e000 {
 			pinctrl-names = "default", "sleep";
 			pinctrl-0 = <&lcd_pins_default>;
@@ -406,6 +428,7 @@
 				};
 			};
 		};
+*/		
 
 	};
 };
@@ -429,12 +452,7 @@
         interrupt-parent = <&gpio1>;
         interrupts = <21 2>;
         gpios = <&gpio1 21 GPIO_ACTIVE_LOW>;
-
-/*
-		interrupt-parent = <&gpio1>;
-		interrupts = <21>;
-*/
-
-		ti,x-plate-ohms = <450>;
+		ti,x-plate-ohms = <300>;
+		ti,poll-period = <10>; /*uS... I think*/
 	};
 };

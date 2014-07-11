@@ -210,7 +210,7 @@ static irqreturn_t tsc2007_soft_irq(int irq, void *handle)
 		}
 
 		if (rt <= ts->max_rt) {
-			dev_dbg(&ts->client->dev,
+			printk(&ts->client->dev,
 				"DOWN point(%4d,%4d), pressure (%4u)\n",
 				tc.x, tc.y, rt);
 
@@ -227,7 +227,7 @@ static irqreturn_t tsc2007_soft_irq(int irq, void *handle)
 			 * beyond the maximum. Don't report it to user space,
 			 * repeat at least once more the measurement.
 			 */
-			dev_dbg(&ts->client->dev, "ignored pressure %d\n", rt);
+			printk(&ts->client->dev, "ignored pressure %d\n", rt);
 		}
 
 		wait_event_timeout(ts->wait, ts->stopped,

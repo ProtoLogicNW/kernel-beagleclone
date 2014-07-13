@@ -20,6 +20,9 @@
  *  published by the Free Software Foundation.
  */
 
+
+/*HACKED BY CVONDRACHEK TO IMPLEMENT SWIPE GESTURE RECOGNITION */
+
 #include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/input.h>
@@ -29,22 +32,6 @@
 #include <linux/of_device.h>
 #include <linux/of.h>
 #include <linux/of_gpio.h>
-
-#if 0
-#include <linux/init.h>
-#include <linux/fs.h>
-#include <linux/irq.h>
-#include <linux/sched.h>
-#include <linux/pm.h>
-#include <linux/sysctl.h>
-#include <linux/proc_fs.h>
-#include <linux/delay.h>
-#include <linux/platform_device.h>
-#include <linux/workqueue.h>
-#include <linux/gpio.h>
-#include <linux/of_platform.h>
-#include <linux/spinlock.h>
-#endif
 
 #define TSC2007_MEASURE_TEMP0		(0x0 << 4)
 #define TSC2007_MEASURE_AUX		(0x2 << 4)
@@ -186,18 +173,46 @@ static bool tsc2007_is_pen_down(struct tsc2007 *ts)
 	return ts->get_pendown_state(&ts->client->dev);
 }
 
-static irqreturn_t tsc2007_soft_irq(int irq, void *handle)
-{
+/* Notes on swipe direction...
+
+	With reworked tsc2003 and TFT oriented with the cable to the left (landscape)
+	Left edge is ~100, right is ~3900 (of 4096)
+
+*/ 
+
+static irqreturn_t tsc2007_soft_irq(int irq, void *handle){
 	struct tsc2007 *ts = handle;
 	struct input_dev *input = ts->input;
 	struct ts_event tc;
 	u32 rt;
+	u16 startX=0;
+	int swipeDist;
+	bool swipeCaptured=0;
 
 	while (!ts->stopped && tsc2007_is_pen_down(ts)) {
 
 		/* pen is down, continue with the measurement */
 		tsc2007_read_values(ts, &tc);
-
+		
+		/* trap start of swipe*/
+		if(startX==0)
+			startX=tc.x;
+		else if(swipeCaptured==0)
+		{
+			swipeDist=tc.x -startX;
+			if(swipeDist>400)
+			{
+				//input_report_key(input, KEY_R, 1);
+				swipeCaptured=1;
+			}
+			else if(swipeDist<-400)
+			{
+				//input_report_key(input, KEY_L, 1);
+				swipeCaptured=1;
+			}
+		}
+				
+			
 		rt = tsc2007_calculate_pressure(ts, &tc);
 
 		if (!rt && !ts->get_pendown_state) {
@@ -210,10 +225,7 @@ static irqreturn_t tsc2007_soft_irq(int irq, void *handle)
 		}
 
 		if (rt <= ts->max_rt) {
-			printk(&ts->client->dev,
-				"DOWN point(%4d,%4d), pressure (%4u)\n",
-				tc.x, tc.y, rt);
-
+			//printk(&ts->client->dev,"DOWN point(%4d,%4d), pressure (%4u)\n",tc.x, tc.y, rt);
 			input_report_key(input, BTN_TOUCH, 1);
 			input_report_abs(input, ABS_X, tc.x);
 			input_report_abs(input, ABS_Y, tc.y);
@@ -227,15 +239,15 @@ static irqreturn_t tsc2007_soft_irq(int irq, void *handle)
 			 * beyond the maximum. Don't report it to user space,
 			 * repeat at least once more the measurement.
 			 */
-			printk(&ts->client->dev, "ignored pressure %d\n", rt);
+			//printk(&ts->client->dev, "ignored pressure %d\n", rt);
 		}
 
-		wait_event_timeout(ts->wait, ts->stopped,
-				   msecs_to_jiffies(ts->poll_period));
+		wait_event_timeout(ts->wait, ts->stopped,msecs_to_jiffies(ts->poll_period));
 	}
 
-	dev_dbg(&ts->client->dev, "UP\n");
-
+	//dev_dbg(&ts->client->dev, "UP\n");
+	//input_report_key(input, KEY_L, 0);
+	//input_report_key(input, KEY_R, 0);
 	input_report_key(input, BTN_TOUCH, 0);
 	input_report_abs(input, ABS_PRESSURE, 0);
 	input_sync(input);
@@ -278,12 +290,12 @@ static int tsc2007_open(struct input_dev *input_dev)
 
 	enable_irq(ts->irq);
 
-	printk("\n\n\n===============>TS2007 OPEN<==================\n\n\n");
+	//printk("\n\n\n===============>TS2007 OPEN<==================\n\n\n");
 
 	/* Prepare for touch readings - power down ADC and enable PENIRQ */
 	err = tsc2007_xfer(ts, PWRDOWN);
 	if (err < 0) {
-		printk("\n\n\n===============>VERY BAD THINGS<==================\n\n\n");
+		//printk("\n\n\n===============>VERY BAD THINGS<==================\n\n\n");
 		tsc2007_stop(ts);
 		return err;
 	}
@@ -294,7 +306,7 @@ static int tsc2007_open(struct input_dev *input_dev)
 static void tsc2007_close(struct input_dev *input_dev)
 {
 	struct tsc2007 *ts = input_get_drvdata(input_dev);
-	printk("\n\n\n===============>TS2007 CLOSE<==================\n\n\n");
+	//printk("\n\n\n===============>TS2007 CLOSE<==================\n\n\n");
 
 	tsc2007_stop(ts);
 }
@@ -441,6 +453,8 @@ static int tsc2007_probe(struct i2c_client *client,
 
 	input_dev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_ABS);
 	input_dev->keybit[BIT_WORD(BTN_TOUCH)] = BIT_MASK(BTN_TOUCH);
+	//input_dev->keybit[BIT_WORD(KEY_L)] = BIT_MASK(KEY_L);
+	//input_dev->keybit[BIT_WORD(KEY_R)] = BIT_MASK(KEY_R);
 
 	input_set_abs_params(input_dev, ABS_X, 0, MAX_12BIT, ts->fuzzx, 0);
 	input_set_abs_params(input_dev, ABS_Y, 0, MAX_12BIT, ts->fuzzy, 0);
@@ -510,7 +524,7 @@ MODULE_DEVICE_TABLE(of, tsc2007_of_match);
 static struct i2c_driver tsc2007_driver = {
 	.driver = {
 		.owner	= THIS_MODULE,
-		.name	= "tsc2007",
+		.name	= "tsc2007-cvhack",
 		.of_match_table = of_match_ptr(tsc2007_of_match),
 	},
 	.id_table	= tsc2007_idtable,

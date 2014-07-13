@@ -446,13 +446,13 @@
 &i2c2 {
 	/* https://kernel.googlesource.com/pub/scm/linux/kernel/git/tmlind/linux-omap/+/718ae1cd66fb054cb32e2c6851bc71b99f2f6d2c/arch/arm/boot/dts/omap3-gta04.dts*/
 	/* http://www.signal11.us/oss/elce2012/beaglebone_mrf24j40_hacks.diff */
-	tsc2007@48 { 
-		compatible = "ti,tsc2007";
-		reg = <0x48>;
-        interrupt-parent = <&gpio1>;
-        interrupts = <21 2>;
-        gpios = <&gpio1 21 GPIO_ACTIVE_LOW>;
-		ti,x-plate-ohms = <300>;
-		ti,poll-period = <10>; /*uS... I think*/
+	psoctouch@5 { 
+		compatible = "psoc,psoctouch";
+		reg = <0x05>;
+        	interrupt-parent = <&gpio1>;
+        	interrupts = <21 2>;
+        	gpios = <&gpio1 21 GPIO_ACTIVE_LOW>;
+		ti,poll-period = <1000>; /*mS*/
 	};
+
 };

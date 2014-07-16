@@ -611,6 +611,18 @@ config TOUCHSCREEN_PSOCTOUCH
 	  To compile this driver as a module, choose M here: the
 	  module will be called psoctouch.
 
+config TOUCHSCREEN_PSOCTOUCH_INTR
+	tristate "ProtoLogic PSoC I2C Touchscreen Intr"
+	depends on I2C
+	help
+	  Say Y here if you have a fly-ass ProtoLogical PSoC-tastic i2c touchscreen dealio.
+	  controller.... with interrupt support.
+
+	  If unsure, say N.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called psoctouch_intr.
+
 config TOUCHSCREEN_WM831X
 	tristate "Support for WM831x touchscreen controllers"
 	depends on MFD_WM831X

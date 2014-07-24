@@ -6,6 +6,8 @@
  */
 
 
+// KEEP POLL IFDEFS IN-CASE WE NEED IT FOR DEBUGGING LATER
+
 #include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/input.h>
@@ -91,6 +93,15 @@ static irqreturn_t psoctouch_soft_irq(int irq, void *handle)
 {
 	struct psoctouch *pst = handle;
 	struct input_dev *input = pst->input;
+	struct ts_event tc;
+        
+	while (!pst->stopped && psoctouch_is_pen_down(pst)) 
+	{
+                /* pen is down, continue with the measurement */
+                psoctouch_read_values(pst, &tc);
+		wait_event_timeout(pst->wait, pst->stopped,msecs_to_jiffies(pst->poll_period));
+	}
+
 /*
 	input_report_key(input, BTN_TOUCH, 1);
 	input_report_abs(input, ABS_X, tc.x);
@@ -99,7 +110,7 @@ static irqreturn_t psoctouch_soft_irq(int irq, void *handle)
 	input_sync(input);
 */
 	//loop pacing!
-	wait_event_timeout(pst->wait, pst->stopped,msecs_to_jiffies(pst->poll_period));
+	//wait_event_timeout(pst->wait, pst->stopped,msecs_to_jiffies(pst->poll_period));
 
 	//dev_dbg(&ts->client->dev, "UP\n");
 	//input_report_key(input, KEY_LEFT, 0);
@@ -127,7 +138,7 @@ static irqreturn_t psoctouch_soft_irq(int irq, void *handle)
 */
 static irqreturn_t psoctouch_hard_irq(int irq, void *handle)
 {
-/*
+
 	struct psoctouch *pst = handle;
 
 	if (psoctouch_is_pen_down(pst))
@@ -135,7 +146,7 @@ static irqreturn_t psoctouch_hard_irq(int irq, void *handle)
 
 	if (pst->clear_penirq)
 		pst->clear_penirq();
-*/
+
 	return IRQ_HANDLED;
 }
 
@@ -178,7 +189,7 @@ static int psoctouch_probe_dt(struct i2c_client *client, struct psoctouch *pst)
 	u32 val32;
 	u64 val64;
 
-/*	if (!np) {
+	if (!np) {
 		dev_err(&client->dev, "missing device tree data\n");
 		return -EINVAL;
 	}
@@ -194,8 +205,7 @@ static int psoctouch_probe_dt(struct i2c_client *client, struct psoctouch *pst)
 	else
 		dev_warn(&client->dev,
 			 "GPIO not specified in DT (of_get_gpio returned %d)\n",pst->gpio);
-*/
-	dev_warn(&client->dev,"Someone should actually implement device-tree for me... please?\n");
+
 	return 0;
 }
 #else //OLD, NON DT METHOD
@@ -206,32 +216,12 @@ static int psoctouch_probe_dt(struct i2c_client *client, struct psoctouch *pst)
 }
 #endif
 
-#if 0
-
-static int psoctouch_probe_pdev(struct i2c_client *client, struct psoctouch *pst,
-			      const struct psoctouch_platform_data *pdata,
-			      const struct i2c_device_id *id)
-{
-	pst->poll_period = pdata->poll_period ? : 1000;
-
-	return 0;
-}
-
-static void psoctouch_call_exit_platform_hw(void *data)
-{
-	struct device *dev = data;
-	const struct psoctouch_platform_data *pdata = dev_get_platdata(dev);
-
-	pdata->exit_platform_hw();
-}
-#endif
-
-#define PSOC_POLL
+//#define PSOC_POLL
+// ^^^^^^^  keep this for a bit longer
 
 //DT SUPPORT ONLY!
 static int psoctouch_probe(struct i2c_client *client, const struct i2c_device_id *id)
 {
-	//const struct psoctouch_platform_data *pdata = dev_get_platdata(&client->dev);
 	struct psoctouch *pst;
 	struct input_dev *input_dev;
 #ifdef PSOC_POLL
@@ -246,9 +236,6 @@ static int psoctouch_probe(struct i2c_client *client, const struct i2c_device_id
 	if (!pst)
 		return -ENOMEM;
 
-	//if (pdata)
-	//	err = psoctouch_probe_pdev(client, pst, pdata, id);
-	//else
 	err = psoctouch_probe_dt(client, pst);
 	if (err)
 		return err;
@@ -278,7 +265,7 @@ static int psoctouch_probe(struct i2c_client *client, const struct i2c_device_id
 
 	snprintf(pst->phys, sizeof(pst->phys),"%s/input0", dev_name(&client->dev));
 	
-	input_dev->name = "ProtoLogic PSoC Touchscreen";
+	input_dev->name = "ProtoLogic PSoC Intr Touchscreen";
 	input_dev->phys = pst->phys;
 	input_dev->id.bustype = BUS_I2C;
 
@@ -317,7 +304,7 @@ static int psoctouch_probe(struct i2c_client *client, const struct i2c_device_id
 			pst->irq, err);
 		return err;
 	}
-	psoctouch_stop(ts);
+	psoctouch_stop(pst);
 #endif
 
 #ifdef PSOC_POLL
@@ -334,7 +321,7 @@ static int psoctouch_probe(struct i2c_client *client, const struct i2c_device_id
 }
 
 static const struct i2c_device_id psoctouch_idtable[] = {
-	{ "psoctouch", 0 },
+	{ "psoctouch_intr", 0 },
 	{ }
 };
 
@@ -342,7 +329,7 @@ MODULE_DEVICE_TABLE(i2c, psoctouch_idtable);
 
 #ifdef CONFIG_OF
 static const struct of_device_id psoctouch_of_match[] = {
-	{ .compatible = "psoctouch" },
+	{ .compatible = "psoctouch_intr" },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, psoctouch_of_match);
@@ -351,15 +338,14 @@ MODULE_DEVICE_TABLE(of, psoctouch_of_match);
 static struct i2c_driver psoctouch_driver = {
 	.driver = {
 		.owner	= THIS_MODULE,
-		.name	= "psoctouch",
+		.name	= "psoctouch_intr",
 		.of_match_table = of_match_ptr(psoctouch_of_match),
 	},
 	.id_table	= psoctouch_idtable,
 	.probe		= psoctouch_probe,
 };
-
 module_i2c_driver(psoctouch_driver);
 
 MODULE_AUTHOR("Chris Vondrachek <chris@protologicnw.com>");
-MODULE_DESCRIPTION("PSoC TouchScreen Driver");
+MODULE_DESCRIPTION("PSoC TouchScreen Intr Driver");
 MODULE_LICENSE("GPL");

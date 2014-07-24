@@ -160,7 +160,7 @@ static int psoctouch_probe(struct i2c_client *client, const struct i2c_device_id
 
 	snprintf(pst->phys, sizeof(pst->phys),"%s/input0", dev_name(&client->dev));
 	
-	input_dev->name = "ProtoLogic PSoC Touchscreen";
+	input_dev->name = "ProtoLogic PSoC Poll Touchscreen";
 	input_dev->phys = pst->phys;
 	input_dev->id.bustype = BUS_I2C;
 
@@ -195,7 +195,7 @@ static int psoctouch_probe(struct i2c_client *client, const struct i2c_device_id
 }
 
 static const struct i2c_device_id psoctouch_idtable[] = {
-	{ "psoctouch", 0 },
+	{ "psoctouch_poll", 0 },
 	{ }
 };
 
@@ -203,7 +203,7 @@ MODULE_DEVICE_TABLE(i2c, psoctouch_idtable);
 
 #ifdef CONFIG_OF
 static const struct of_device_id psoctouch_of_match[] = {
-	{ .compatible = "psoctouch" },
+	{ .compatible = "psoctouch_poll" },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, psoctouch_of_match);
@@ -212,7 +212,7 @@ MODULE_DEVICE_TABLE(of, psoctouch_of_match);
 static struct i2c_driver psoctouch_driver = {
 	.driver = {
 		.owner	= THIS_MODULE,
-		.name	= "psoctouch",
+		.name	= "psoctouch_poll",
 		.of_match_table = of_match_ptr(psoctouch_of_match),
 	},
 	.id_table	= psoctouch_idtable,

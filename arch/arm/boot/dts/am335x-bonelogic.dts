@@ -176,6 +176,18 @@
 			>;
 		};
 
+
+                mmc1_pins_default: pinmux_mmc1_pins {
+                        pinctrl-single,pins = <
+                                0x0F0 (PIN_INPUT_PULLUP | MUX_MODE0)    /* mmc0_dat3.mmc0_dat3 */
+                                0x0F4 (PIN_INPUT_PULLUP | MUX_MODE0)    /* mmc0_dat2.mmc0_dat2 */
+                                0x0F8 (PIN_INPUT_PULLUP | MUX_MODE0)    /* mmc0_dat1.mmc0_dat1 */
+                                0x0FC (PIN_INPUT_PULLUP | MUX_MODE0)    /* mmc0_dat0.mmc0_dat0 */
+                                0x100 (PIN_INPUT_PULLUP | MUX_MODE0)    /* mmc0_clk.mmc0_clk */
+                                0x104 (PIN_INPUT_PULLUP | MUX_MODE0)    /* mmc0_cmd.mmc0_cmd */
+				0x160 (PIN_INPUT | MUX_MODE7)           /* spi0_cs1.gpio0_6 */
+                        >;
+                };
    };//pins
 
    /* "On Chip Peripherals".... in case you were wondering. */
@@ -314,6 +326,13 @@
 	};
 */
 
+        vmmcsd_fixed: fixedregulator@0 {
+                compatible = "regulator-fixed";
+                regulator-name = "vmmcsd_fixed";
+                regulator-min-microvolt = <3300000>;
+                regulator-max-microvolt = <3300000>;
+	};
+
    }; //OCP
 };
 
@@ -394,11 +413,24 @@
 
                 ldo3_reg: regulator@5 {
                         regulator-always-on;
+		        regulator-min-microvolt = <3300000>;
+		        regulator-max-microvolt = <3300000>;
                 };
 
                 ldo4_reg: regulator@6 {
                         regulator-always-on;
+		        regulator-min-microvolt = <3300000>;
+		        regulator-max-microvolt = <3300000>;
                 };
         };//regulators
 };//tps
 
+&mmc1 {
+        status = "okay";
+        bus-width = <4>;
+        pinctrl-names = "default";
+        pinctrl-0 = <&mmc1_pins_default>;
+        cd-gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
+        cd-inverted;
+	vmmc-supply = <&vmmcsd_fixed>;
+};

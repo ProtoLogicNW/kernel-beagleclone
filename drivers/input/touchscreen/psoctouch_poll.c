@@ -45,16 +45,17 @@ struct psoctouch {
 static inline int psoctouch_xfer(struct psoctouch *pst)
 {
 	s32 data;
-	u16 val;
+	u8 vals[32];
+	
+	data = i2c_smbus_read_block_data(pst->client, 0, &vals[0]);
 
-	data = i2c_smbus_read_word_data(pst->client, 0);
 	if (data < 0) {
 		dev_err(&pst->client->dev, "i2c io error: %d\n", data);
 		return data;
 	}
 
 	//not sure about the format... yet.  Just print!
-	printk("psoc data: 0x%x\n", data);
+	printk("psoc data: 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x\n", vals[0], vals[1], vals[2], vals[3], vals[4], vals[5], vals[6], vals[7] );
 
 	return 0;
 }

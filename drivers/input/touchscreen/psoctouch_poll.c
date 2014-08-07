@@ -45,18 +45,25 @@ struct psoctouch {
 static inline int psoctouch_xfer(struct psoctouch *pst)
 {
 	s32 data;
-	u8 vals[32];
-	
-	data = i2c_smbus_read_block_data(pst->client, 0, &vals[0]);
+	u8 i;
 
-	if (data < 0) {
-		dev_err(&pst->client->dev, "i2c io error: %d\n", data);
-		return data;
+	printk("psoc data:");
+
+	for(i=0; i<8; i+=2)
+	{	
+	
+	
+		data = i2c_smbus_read_word_data(pst->client, i);
+
+		if (data < 0) {
+			dev_err(&pst->client->dev, "i2c io error: %d\n", data);
+			return data;
+		}
+
+		printk(" 0x%02x 0x%02x", data/0x100, data%0x100);
 	}
 
-	//not sure about the format... yet.  Just print!
-	printk("psoc data: 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x\n", vals[0], vals[1], vals[2], vals[3], vals[4], vals[5], vals[6], vals[7] );
-
+	printk("\n");
 	return 0;
 }
 
@@ -97,8 +104,6 @@ static void psoctouch_poll(struct input_polled_dev *dev)
 	psoctouch_read_values(pst,&tc);	
 }
 
-//DEVICETREE?
-#ifdef CONFIG_OF
 static int psoctouch_get_pendown_state_gpio(struct device *dev)
 {
 	struct i2c_client *client = to_i2c_client(dev);
@@ -114,13 +119,6 @@ static int psoctouch_probe_dt(struct i2c_client *client, struct psoctouch *pst)
 
 	return 0;
 }
-#else //OLD, NON DT METHOD
-static int psoctouch_probe_dt(struct i2c_client *client, struct psoctouch *pst)
-{
-	dev_err(&client->dev, "platform data is required!\n");
-	return -EINVAL;
-}
-#endif
 
 static int psoctouch_probe(struct i2c_client *client, const struct i2c_device_id *id)
 {
@@ -130,8 +128,10 @@ static int psoctouch_probe(struct i2c_client *client, const struct i2c_device_id
 	int err;
 
 	if (!i2c_check_functionality(client->adapter,I2C_FUNC_SMBUS_READ_WORD_DATA))
+	{
+		printk("psoctouch: I2C driver features inadequate!\n");
 		return -EIO;
-
+	}
 	pst = devm_kzalloc(&client->dev, sizeof(struct psoctouch), GFP_KERNEL);
 	if (!pst)
 	return -ENOMEM;
@@ -192,6 +192,7 @@ static int psoctouch_probe(struct i2c_client *client, const struct i2c_device_id
 		return err;
 	}
 
+	printk("PSoCTouch 8-byte!\n");
 	return 0;
 }
 
@@ -202,13 +203,11 @@ static const struct i2c_device_id psoctouch_idtable[] = {
 
 MODULE_DEVICE_TABLE(i2c, psoctouch_idtable);
 
-#ifdef CONFIG_OF
 static const struct of_device_id psoctouch_of_match[] = {
 	{ .compatible = "psoctouch_poll" },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, psoctouch_of_match);
-#endif
 
 static struct i2c_driver psoctouch_driver = {
 	.driver = {

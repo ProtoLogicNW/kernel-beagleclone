@@ -207,6 +207,22 @@
                         compatible = "mx25l12805d";
                         spi-max-frequency = <24000000>;
                         reg = <0x0>;
+               		#address-cells = <1>;
+               		#size-cells = <1>;
+			partition@0
+			{
+                  		label = "enchilda";
+                  		reg = <0 0xFFFFFF>;
+			};
+			partition@0xB0000 {
+                  		label = "rsvd";
+                  		reg = <0xB0000 0x4FFFF>;
+               		};
+			partition@0x480000 {
+                  		label = "bootfs";
+                  		reg = <0x480000 0xB7FFFF>;
+               		};
+
                 };
         };
         spi1: spi@481a0000 {
@@ -217,6 +233,12 @@
                         compatible = "s25fl512s";
                         spi-max-frequency = <24000000>;
                         reg = <0x0>;
+               		#address-cells = <1>;
+               		#size-cells = <1>;
+			partition@0 {
+                  		label = "usrfs";
+                  		reg = <0 0x3FFFFFF>;
+               		};
                 };
         };
 

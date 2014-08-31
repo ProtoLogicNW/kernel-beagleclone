@@ -376,19 +376,22 @@
 	ti,no-reset;
 };
 
+
+/* https://kernel.googlesource.com/pub/scm/linux/kernel/git/tmlind/linux-omap/+/718ae1cd66fb054cb32e2c6851bc71b99f2f6d2c/arch/arm/boot/dts/omap3-gta04.dts*/
+/* http://www.signal11.us/oss/elce2012/beaglebone_mrf24j40_hacks.diff */
+/*
 &i2c2 {
-	/* https://kernel.googlesource.com/pub/scm/linux/kernel/git/tmlind/linux-omap/+/718ae1cd66fb054cb32e2c6851bc71b99f2f6d2c/arch/arm/boot/dts/omap3-gta04.dts*/
-	/* http://www.signal11.us/oss/elce2012/beaglebone_mrf24j40_hacks.diff */
 	psoctouch_intr@5 { 
 		compatible = "psoc,psoctouch_poll";
 		reg = <0x13>;
         	interrupt-parent = <&gpio1>;
         	interrupts = <21 2>;
         	gpios = <&gpio1 21 GPIO_ACTIVE_LOW>;
-		ti,poll-period = <10>; /*mS*/
+		ti,poll-period = <10>; //mS
 	};
 
 };
+*/
 
 /*
 &epwmss1 {

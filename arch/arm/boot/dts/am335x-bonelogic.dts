@@ -212,15 +212,15 @@
 			partition@0
 			{
                   		label = "enchilda";
-                  		reg = <0 0xFFFFFF>;
+                  		reg = <0 0x1000000>;
 			};
 			partition@0xB0000 {
                   		label = "rsvd";
-                  		reg = <0xB0000 0x4FFFF>;
+                  		reg = <0xB0000 0x50000>;
                		};
 			partition@0x480000 {
                   		label = "bootfs";
-                  		reg = <0x480000 0xB7FFFF>;
+                  		reg = <0x480000 0xB80000>;
                		};
 
                 };
@@ -237,7 +237,7 @@
                		#size-cells = <1>;
 			partition@0 {
                   		label = "usrfs";
-                  		reg = <0 0x3FFFFFF>;
+                  		reg = <0 0x4000000>;
                		};
                 };
         };

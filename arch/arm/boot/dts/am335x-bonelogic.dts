@@ -77,10 +77,11 @@
 			>;
 		};
 
-		gpio_bl_pins: pinmux_gpio_bl_pins 
+		gpio_pins: pinmux_gpio_pins 
 		{
 			pinctrl-single,pins = <
-				0x48 0x07 /* gpmc_a2.ehrpwm1a, gpio1_18, OUTPUT | MODE7 */
+				0x48 0x07 /* gpmc_a2.ehrpwm1a (gpio1_18), LCD Backlight enable, OUTPUT | MODE7 */
+				0x60 0x07 /* gpmc_a8.gpio1_24, PSoC reset, OUTPUT | MODE7 */
 			>;
 		};
 
@@ -209,20 +210,35 @@
                         reg = <0x0>;
                		#address-cells = <1>;
                		#size-cells = <1>;
-			partition@0
+			wholechip@0
 			{
                   		label = "enchilda";
                   		reg = <0 0x1000000>;
 			};
+			partition@0 {
+                  		label = "MLO";
+                  		reg = <0 0x20000>;
+               		};
+			partition@0x20000 {
+                  		label = "uboot";
+                  		reg = <0x20000 0x80000>;
+               		};
+			partition@0xA0000 {
+                  		label = "dtb";
+                  		reg = <0xA0000 0x10000>;
+               		};
 			partition@0xB0000 {
-                  		label = "rsvd";
-                  		reg = <0xB0000 0x50000>;
+                  		label = "initrd";
+                  		reg = <0xB0000 0x100000>;
                		};
-			partition@0x480000 {
-                  		label = "bootfs";
-                  		reg = <0x480000 0xB80000>;
+			partition@0x1B0000 {
+                  		label = "zimage";
+                  		reg = <0x1B0000 0x300000>;
                		};
-
+			partition@0x4B0000 {
+                  		label = "rootfs";
+                  		reg = <0x4B0000 0xB50000>;
+               		};
                 };
         };
         spi1: spi@481a0000 {
@@ -322,15 +338,21 @@
 		};
 	};
 
-	gpio_leds
+	gpio
 	{
         	compatible = "gpio-leds";
                 pinctrl-names = "default";
-                pinctrl-0 = <&gpio_bl_pins>;
+                pinctrl-0 = <&gpio_pins>;
 		lcd_backlight
 		{
 			label="lcdbacklight";
 			gpios = <&gpio1 18 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+		};
+		psoc_reset
+		{
+			label="psocreset";
+			gpios = <&gpio1 24 GPIO_ACTIVE_HIGH>;
 			default-state = "off";
 		};
 	};

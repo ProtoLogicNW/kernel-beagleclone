@@ -77,10 +77,11 @@
 			>;
 		};
 
-		gpio_bl_pins: pinmux_gpio_bl_pins 
+		gpio_pins: pinmux_gpio_pins 
 		{
 			pinctrl-single,pins = <
-				0x48 0x07 /* gpmc_a2.ehrpwm1a, gpio1_18, OUTPUT | MODE7 */
+				0x48 0x07 /* gpmc_a2.ehrpwm1a (gpio1_18), LCD Backlight enable, OUTPUT | MODE7 */
+				0x60 0x07 /* gpmc_a8.gpio1_24, PSoC reset, OUTPUT | MODE7 */
 			>;
 		};
 
@@ -207,6 +208,37 @@
                         compatible = "mx25l12805d";
                         spi-max-frequency = <24000000>;
                         reg = <0x0>;
+               		#address-cells = <1>;
+               		#size-cells = <1>;
+			wholechip@0
+			{
+                  		label = "enchilda";
+                  		reg = <0 0x1000000>;
+			};
+			partition@0 {
+                  		label = "MLO";
+                  		reg = <0 0x20000>;
+               		};
+			partition@0x20000 {
+                  		label = "uboot";
+                  		reg = <0x20000 0x80000>;
+               		};
+			partition@0xA0000 {
+                  		label = "dtb";
+                  		reg = <0xA0000 0x10000>;
+               		};
+			partition@0xB0000 {
+                  		label = "initrd";
+                  		reg = <0xB0000 0x100000>;
+               		};
+			partition@0x1B0000 {
+                  		label = "zimage";
+                  		reg = <0x1B0000 0x300000>;
+               		};
+			partition@0x4B0000 {
+                  		label = "rootfs";
+                  		reg = <0x4B0000 0xB50000>;
+               		};
                 };
         };
         spi1: spi@481a0000 {
@@ -217,6 +249,12 @@
                         compatible = "s25fl512s";
                         spi-max-frequency = <24000000>;
                         reg = <0x0>;
+               		#address-cells = <1>;
+               		#size-cells = <1>;
+			partition@0 {
+                  		label = "usrfs";
+                  		reg = <0 0x4000000>;
+               		};
                 };
         };
 
@@ -300,15 +338,21 @@
 		};
 	};
 
-	gpio_leds
+	gpio
 	{
         	compatible = "gpio-leds";
                 pinctrl-names = "default";
-                pinctrl-0 = <&gpio_bl_pins>;
+                pinctrl-0 = <&gpio_pins>;
 		lcd_backlight
 		{
 			label="lcdbacklight";
 			gpios = <&gpio1 18 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+		};
+		psoc_reset
+		{
+			label="psocreset";
+			gpios = <&gpio1 24 GPIO_ACTIVE_HIGH>;
 			default-state = "off";
 		};
 	};
@@ -354,19 +398,22 @@
 	ti,no-reset;
 };
 
+
+/* https://kernel.googlesource.com/pub/scm/linux/kernel/git/tmlind/linux-omap/+/718ae1cd66fb054cb32e2c6851bc71b99f2f6d2c/arch/arm/boot/dts/omap3-gta04.dts*/
+/* http://www.signal11.us/oss/elce2012/beaglebone_mrf24j40_hacks.diff */
+/*
 &i2c2 {
-	/* https://kernel.googlesource.com/pub/scm/linux/kernel/git/tmlind/linux-omap/+/718ae1cd66fb054cb32e2c6851bc71b99f2f6d2c/arch/arm/boot/dts/omap3-gta04.dts*/
-	/* http://www.signal11.us/oss/elce2012/beaglebone_mrf24j40_hacks.diff */
 	psoctouch_intr@5 { 
 		compatible = "psoc,psoctouch_poll";
 		reg = <0x13>;
         	interrupt-parent = <&gpio1>;
         	interrupts = <21 2>;
         	gpios = <&gpio1 21 GPIO_ACTIVE_LOW>;
-		ti,poll-period = <10>; /*mS*/
+		ti,poll-period = <10>; //mS
 	};
 
 };
+*/
 
 /*
 &epwmss1 {

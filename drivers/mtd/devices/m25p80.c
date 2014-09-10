@@ -1170,7 +1170,11 @@ static int m25p_probe(struct spi_device *spi)
 
 	flash->mtd.type = MTD_NORFLASH;
 	flash->mtd.writesize = 1;
-	flash->mtd.flags = MTD_CAP_NORFLASH;
+	/*
+	shot in the dark change to fix "jffs2_flash_writev(): Non-contiguous write" bug during jffs2 file change
+	hint: http://lists.infradead.org/pipermail/linux-mtd-cvs/2006-December/005674.html
+	*/
+	flash->mtd.flags = MTD_WRITEABLE;//MTD_CAP_NORFLASH;
 	flash->mtd.size = info->sector_size * info->n_sectors;
 	flash->mtd._erase = m25p80_erase;
 	flash->mtd._read = m25p80_read;

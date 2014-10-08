@@ -210,34 +210,18 @@
                         reg = <0x0>;
                		#address-cells = <1>;
                		#size-cells = <1>;
-			wholechip@0
+			partition@0xA0000
 			{
-                  		label = "enchilda";
-                  		reg = <0 0x1000000>;
+                  		label = "sospitator";
+                  		reg = <0xA0000 0xF60000>;
 			};
-			partition@0 {
-                  		label = "MLO";
-                  		reg = <0 0x20000>;
-               		};
-			partition@0x20000 {
-                  		label = "uboot";
-                  		reg = <0x20000 0x80000>;
-               		};
-			partition@0xA0000 {
-                  		label = "dtb";
-                  		reg = <0xA0000 0x10000>;
-               		};
-			partition@0xB0000 {
-                  		label = "initrd";
-                  		reg = <0xB0000 0x100000>;
-               		};
-			partition@0x1B0000 {
-                  		label = "zimage";
-                  		reg = <0x1B0000 0x300000>;
-               		};
 			partition@0x4B0000 {
-                  		label = "rootfs";
-                  		reg = <0x4B0000 0xB50000>;
+                  		label = "modules";
+                  		reg = <0x4B0000 0x200000>;
+               		};
+			partition@0xF80000 {
+                  		label = "config";
+                  		reg = <0xF80000 0x80000>;
                		};
                 };
         };
@@ -253,11 +237,14 @@
                		#size-cells = <1>;
 			partition@0 {
                   		label = "usrfs";
-                  		reg = <0 0x4000000>;
+                  		reg = <0 0x3C00000>;
+               		};
+			partition@3C00000 {
+                  		label = "nvram";
+                  		reg = <0x3C00000 0x400000>;
                		};
                 };
         };
-
 	i2c0: i2c@44e0b000 {
 		pinctrl-names = "default";
 		pinctrl-0 = <&i2c0_pins>;

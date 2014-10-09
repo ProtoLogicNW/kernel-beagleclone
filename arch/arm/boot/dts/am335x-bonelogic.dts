@@ -219,6 +219,10 @@
                   		label = "modules";
                   		reg = <0x4B0000 0x200000>;
                		};
+			partition@0x5B0000 {
+                  		label = "fallbackfs";
+                  		reg = <0x6B0000 0x8D0000>;
+               		};
 			partition@0xF80000 {
                   		label = "config";
                   		reg = <0xF80000 0x80000>;

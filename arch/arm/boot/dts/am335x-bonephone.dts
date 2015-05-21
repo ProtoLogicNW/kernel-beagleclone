@@ -66,18 +66,12 @@
 			>;
 		};
 
-		pwm_bl_pins: pinmux_pwm_bl_pins 
-		{
-			pinctrl-single,pins = <
-				0x48 0x06 /* gpmc_a2.ehrpwm1a, OUTPUT | MODE6 */
-			>;
-		};
-
 		gpio_pins: pinmux_gpio_pins 
 		{
 			pinctrl-single,pins = <
-				0x48 0x07 /* gpmc_a2.ehrpwm1a (gpio1_18), LCD Backlight enable, OUTPUT | MODE7 */
-				0x60 0x07 /* gpmc_a8.gpio1_24, PSoC reset, OUTPUT | MODE7 */
+				0x98 0x07 /* gpmc_wen, gpio2_4), USR0/GREEN */
+				0x94 0x07 /* gpmc_oen_ren, gpio2_3), USR1/RED */
+				0x90 0x07 /* gpmc_advn_ale, gpio2_2), USR2/BLUE */
 			>;
 		};
 
@@ -189,6 +183,21 @@
                                 0x138 (PIN_INPUT_PULLUP | MUX_MODE0)    /* mii1_rxd2.mii1_rxd2 */
                                 0x13c (PIN_INPUT_PULLUP | MUX_MODE0)    /* mii1_rxd1.mii1_rxd1 */
                                 0x140 (PIN_INPUT_PULLUP | MUX_MODE0)    /* mii1_rxd0.mii1_rxd0 */
+
+                                /* Slave 2 */
+                                0x074 (PIN_INPUT_PULLUP | MUX_MODE1)    /* U17, 0-31, gpmc_wpm (mii2_rxer) */
+                                0x040 (PIN_OUTPUT_PULLDOWN | MUX_MODE1) /* R13, 1-16, gpmc_a0 (mii2_txen) */
+                                0x044 (PIN_INPUT_PULLUP | MUX_MODE1)    /* V14, 1-17, gpmc_a1 (mii2_rxdv) */
+                                0x048 (PIN_OUTPUT_PULLDOWN | MUX_MODE1) /* U14, 1-18, gpmc_a2 (mii2_txd3) */
+                                0x04C (PIN_OUTPUT_PULLDOWN | MUX_MODE1) /* 	1-19, gpmc_a3 (mii2_txd2) */
+                                0x050 (PIN_OUTPUT_PULLDOWN | MUX_MODE1) /* 	1-20, gpmc_a4 (mii2_txd1) */
+                                0x054 (PIN_OUTPUT_PULLDOWN | MUX_MODE1) /* 	1-21, gpmc_a5 (mii2_txd0) */
+                                0x058 (PIN_INPUT_PULLUP | MUX_MODE1)    /* 	1-22, gpmc_a6 (mii2_txclk) */
+                                0x05C (PIN_INPUT_PULLUP | MUX_MODE1)    /* 	1-23, gpmc_a7 (mii2_rxclk) */
+                                0x060 (PIN_INPUT_PULLUP | MUX_MODE1)    /* 	1-24, gpmc_a8 (mii2_rxd3) */
+                                0x064 (PIN_INPUT_PULLUP | MUX_MODE1)    /* 	1-25, gpmc_a9 (mii2_rxd2) */
+                                0x068 (PIN_INPUT_PULLUP | MUX_MODE1)    /* 	1-26, gpmc_a10 (mii2_rxd1) */
+                                0x06C (PIN_INPUT_PULLUP | MUX_MODE1)    /* 	1-27, gpmc_a11 (mii2_rxd0) */
                         >;
                 };
 
@@ -208,6 +217,20 @@
                                 0x138 (PIN_INPUT_PULLDOWN | MUX_MODE7)
                                 0x13c (PIN_INPUT_PULLDOWN | MUX_MODE7)
                                 0x140 (PIN_INPUT_PULLDOWN | MUX_MODE7)
+
+                                0x074 (PIN_INPUT_PULLUP | MUX_MODE7)    /* U17, 0-31, gpmc_wpm (mii2_rxer) */
+                                0x040 (PIN_OUTPUT_PULLDOWN | MUX_MODE7) /* R13, 1-16, gpmc_a0 (mii2_txen) */
+                                0x044 (PIN_INPUT_PULLUP | MUX_MODE7)    /* V14, 1-17, gpmc_a1 (mii2_rxdv) */
+                                0x048 (PIN_OUTPUT_PULLDOWN | MUX_MODE7) /* U14, 1-18, gpmc_a2 (mii2_txd3) */
+                                0x04C (PIN_OUTPUT_PULLDOWN | MUX_MODE7) /* 	1-19, gpmc_a3 (mii2_txd2) */
+                                0x050 (PIN_OUTPUT_PULLDOWN | MUX_MODE7) /* 	1-20, gpmc_a4 (mii2_txd1) */
+                                0x054 (PIN_OUTPUT_PULLDOWN | MUX_MODE7) /* 	1-21, gpmc_a5 (mii2_txd0) */
+                                0x058 (PIN_INPUT_PULLUP | MUX_MODE7)    /* 	1-22, gpmc_a6 (mii2_txclk) */
+                                0x05C (PIN_INPUT_PULLUP | MUX_MODE7)    /* 	1-23, gpmc_a7 (mii2_rxclk) */
+                                0x060 (PIN_INPUT_PULLUP | MUX_MODE7)    /* 	1-24, gpmc_a8 (mii2_rxd3) */
+                                0x064 (PIN_INPUT_PULLUP | MUX_MODE7)    /* 	1-25, gpmc_a9 (mii2_rxd2) */
+                                0x068 (PIN_INPUT_PULLUP | MUX_MODE7)    /* 	1-26, gpmc_a10 (mii2_rxd1) */
+                                0x06C (PIN_INPUT_PULLUP | MUX_MODE1)    /* 	1-27, gpmc_a11 (mii2_rxd0) */
                         >;
                 };
 
@@ -262,7 +285,7 @@
                		#size-cells = <1>;
 			partition@0xA0000
 			{
-                  		label = "sospitator";
+                  		label = "recovery";
                   		reg = <0xA0000 0xF60000>;
 			};
 			partition@0x4B0000 {
@@ -380,26 +403,34 @@
                         };
                 };
 
-/*
-	gpio
+
+
+	leds
 	{
         	compatible = "gpio-leds";
                 pinctrl-names = "default";
                 pinctrl-0 = <&gpio_pins>;
-		lcd_backlight
+		led@1
 		{
-			label="lcdbacklight";
-			gpios = <&gpio1 18 GPIO_ACTIVE_HIGH>;
+			label="green";
+			gpios = <&gpio2 4 GPIO_ACTIVE_LOW>;
+                       	linux,default-trigger = "heartbeat";
+                        default-state = "off";
+		};
+		led@2
+		{
+			label="red";
+			gpios = <&gpio2 3 GPIO_ACTIVE_LOW>;
 			default-state = "off";
 		};
-		psoc_reset
+		led@3
 		{
-			label="psocreset";
-			gpios = <&gpio1 24 GPIO_ACTIVE_HIGH>;
+			label="blue";
+			gpios = <&gpio2 2 GPIO_ACTIVE_LOW>;
+                        linux,default-trigger = "mmc0";
 			default-state = "off";
 		};
 	};
-*/
 
 /*
 	backlight {
@@ -513,17 +544,25 @@
         phy-mode = "mii";
 };
 
+&cpsw_emac1 {
+        phy_id = <&davinci_mdio>, <1>;
+        phy-mode = "mii";
+};
+
 &mac {
-        slaves = <1>;
+        //slaves = <2>;
         pinctrl-names = "default", "sleep";
         pinctrl-0 = <&cpsw_default>;
         pinctrl-1 = <&cpsw_sleep>;
+	dual_emac;	
+	status = "okay";
 };
 
 &davinci_mdio {
         pinctrl-names = "default", "sleep";
         pinctrl-0 = <&davinci_mdio_default>;
         pinctrl-1 = <&davinci_mdio_sleep>;
+	status = "okay";
 };
 
 &mmc1 {

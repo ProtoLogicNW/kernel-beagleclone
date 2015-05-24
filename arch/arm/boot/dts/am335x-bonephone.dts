@@ -341,8 +341,13 @@
 		>;
 		tps: tps@24 {
 			reg = <0x24>;
+	                compatible = "ti,tps65217";
+        	        backlight {
+                	        isel = <1>;  /* 1 - ISET1, 2 ISET2 */
+                        	fdim = <100>; /* TPS65217_BL_FDIM_100HZ */
+                        	default-brightness = <15>;
+                	};
 		};
-
 	};
 
 	i2c2: i2c@4819c000 {

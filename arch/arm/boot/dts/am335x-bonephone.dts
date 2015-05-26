@@ -286,20 +286,8 @@
 			partition@0xA0000
 			{
                   		label = "recovery";
-                  		reg = <0xA0000 0xF60000>;
+                  		reg = <0x00000 0x1000000>;
 			};
-			partition@0x4B0000 {
-                  		label = "modules";
-                  		reg = <0x4B0000 0x200000>;
-               		};
-			partition@0x5B0000 {
-                  		label = "fallbackfs";
-                  		reg = <0x6B0000 0x8D0000>;
-               		};
-			partition@0xF80000 {
-                  		label = "config";
-                  		reg = <0xF80000 0x80000>;
-               		};
                 };
         };
 
@@ -339,6 +327,12 @@
 		wake-sequence = /bits/ 8 <
 			0x02 0x2d 0x25 0x2b /* Set VDD2 to 1.1V */
 		>;
+
+		eeprom: eeprom@50 {
+                	compatible = "at,24c256";
+	                reg = <0x50>;
+		};
+
 		tps: tps@24 {
 			reg = <0x24>;
 	                compatible = "ti,tps65217";
@@ -419,7 +413,7 @@
 		{
 			label="green";
 			gpios = <&gpio2 4 GPIO_ACTIVE_LOW>;
-                       	linux,default-trigger = "heartbeat";
+                       	linux,default-trigger = "cpu0";
                         default-state = "off";
 		};
 		led@2

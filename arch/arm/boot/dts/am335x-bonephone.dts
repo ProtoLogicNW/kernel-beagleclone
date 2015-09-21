@@ -6,6 +6,8 @@
  *			4. GPIO mapping hell?  RTFM!  (Documentation\devicetree\bindings\gpio\gpio-omap.txt)
  * 			5. Arghhhhh... "THEY" said linux GPIOs are different than pin GPIOs.  BUT they're not, at least not in SDK7.  The ti,hwmods deal in the dtsi fixes this.
  *			
+ * 
+ *			GOOD: http://devicetree.org/Device_Tree_Usage#Sample_Machine
  */
 
 /dts-v1/;
@@ -15,7 +17,7 @@
 
 / {
 	model = "ProtoLogic BeaglePhone";
-	compatible = "ti,am335x-bonephone", "ti,am33xx";
+        compatible = "protologic,am335x-beaglephone", "ti,am33xx";
 
         cpus {
                 cpu@0 {

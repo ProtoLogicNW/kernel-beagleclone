@@ -17,9 +17,8 @@
 #include <dt-bindings/pwm/pwm.h>
 
 / {
-	model = "ProtoLogic Norse LCD";
+	model = "ProtoLogic BeagleClone-Mini";
 	compatible = "ti,am335x-bonelogic", "ti,am33xx";
-
 
         cpus {
                 cpu@0 {
@@ -31,6 +30,27 @@
 		device_type = "memory";
 		reg = <0x80000000 0x08000000>; /* 128 MB */
 	};
+
+	leds {
+                compatible = "gpio-leds";
+                pinctrl-names = "default";
+                pinctrl-0 = <&gpio_pins>;
+                led@1 {
+                        label="green";
+                        gpios = <&gpio2 4 GPIO_ACTIVE_HIGH>;
+                        default-state = "on";
+                };
+                led@2 {
+                        label="red";
+                        gpios = <&gpio2 3 GPIO_ACTIVE_HIGH>;
+                        default-state = "off";
+                };
+                led@3 {
+                        label="blue";
+                        gpios = <&gpio2 2 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "heartbeat";
+                };
+        };
 
 	am33xx_pinmux: pinmux@44e10800 
 	{
@@ -84,6 +104,15 @@
 				0x60 0x07 /* gpmc_a8.gpio1_24, PSoC reset, OUTPUT | MODE7 */
 			>;
 		};
+
+	        gpio_pins: pinmux_gpio_pins
+        	{
+                	pinctrl-single,pins = <
+                        	0x98 0x07 /* gpmc_wen, gpio2_4), USR0/GREEN */
+	                        0x94 0x07 /* gpmc_oen_ren, gpio2_3), USR1/RED */
+        	                0x90 0x07 /* gpmc_advn_ale, gpio2_2), USR2/BLUE */
+                	>;
+	        };
 
 		lcd_pins_sleep: lcd_pins_sleep {
 			pinctrl-single,pins = <
